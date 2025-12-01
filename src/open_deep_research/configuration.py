@@ -126,11 +126,11 @@ class Configuration(BaseModel):
     )
     # Model Configuration
     summarization_model: str = Field(
-        default="openai:gpt-4.1-mini",
+        default="gemini-2.5-flash",
         metadata={
             "x_oap_ui_config": {
                 "type": "text",
-                "default": "openai:gpt-4.1-mini",
+                "default": "gemini-2.5-flash",
                 "description": "Model for summarizing research results from Tavily search results",
             }
         },
@@ -162,7 +162,7 @@ class Configuration(BaseModel):
         metadata={
             "x_oap_ui_config": {
                 "type": "text",
-                "default": "openai:gpt-4.1",
+                "default": "gemini-2.5-flash",
                 "description": "Model for conducting research. NOTE: Make sure your Researcher Model supports the selected search API.",
             }
         },
@@ -182,7 +182,7 @@ class Configuration(BaseModel):
         metadata={
             "x_oap_ui_config": {
                 "type": "text",
-                "default": "openai:gpt-4.1",
+                "default": "gemini-2.5-flash",
                 "description": "Model for compressing research findings from sub-agents. NOTE: Make sure your Compression Model supports the selected search API.",
             }
         },
@@ -202,7 +202,7 @@ class Configuration(BaseModel):
         metadata={
             "x_oap_ui_config": {
                 "type": "text",
-                "default": "openai:gpt-4.1",
+                "default": "gemini-2.5-flash",
                 "description": "Model for writing the final report from all research findings",
             }
         },

@@ -34,7 +34,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from google.api_core.exceptions import ResourceExhausted
 import time
-
+from open_deep_research.logger import log
 
 ##########################
 # Tavily Search Tool Utils
@@ -90,13 +90,15 @@ async def tavily_search(
 
     # Initialize summarization model with retry logic
     model_api_key = get_api_key_for_model(configurable.summarization_model, config)
+    model_configs = {
+        "model": configurable.summarization_model,
+        "max_tokens": configurable.summarization_model_max_tokens,
+        "api_key": model_api_key,
+        "tags": ["langsmith:nostream"],
+    }
+    log.info("model_configs: ", model_configs)
     summarization_model = (
-        ChatGoogleGenerativeAI(
-            model=configurable.summarization_model,
-            max_tokens=configurable.summarization_model_max_tokens,
-            api_key=model_api_key,
-            tags=["langsmith:nostream"],
-        )
+        ChatGoogleGenerativeAI(**model_configs)
         .with_structured_output(Summary)
         .with_retry(stop_after_attempt=configurable.max_structured_output_retries),
     )
@@ -165,7 +167,9 @@ async def tavily_search_async(
         List of search result dictionaries from Tavily API
     """
     # Initialize the Tavily client with API key from config
-    tavily_client = AsyncTavilyClient(api_key=get_tavily_api_key(config))
+    api_key = get_tavily_api_key(config)
+    print("tavily api key: ", api_key)
+    tavily_client = AsyncTavilyClient(api_key=api_key)
 
     # Create search tasks for parallel execution
     search_tasks = [
@@ -563,6 +567,7 @@ async def get_search_tool(search_api: SearchAPI):
     Returns:
         List of configured search tool objects for the specified provider
     """
+    print("seach api tool name: ", search_api)
     if search_api == SearchAPI.ANTHROPIC:
         # Anthropic's native web search with usage limits
         return [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
@@ -838,6 +843,7 @@ MODEL_TOKEN_LIMITS = {
     "google:gemini-1.5-pro": 2097152,
     "google:gemini-1.5-flash": 1048576,
     "google:gemini-pro": 32768,
+    "gemini-2.5-flash": 1048576,
     "cohere:command-r-plus": 128000,
     "cohere:command-r": 128000,
     "cohere:command-light": 4096,
@@ -990,10 +996,13 @@ def get_api_key_for_model(model_name: str, config: RunnableConfig):
 def get_tavily_api_key(config: RunnableConfig):
     """Get Tavily API key from environment or config."""
     should_get_from_config = os.getenv("GET_API_KEYS_FROM_CONFIG", "false")
+    print("should_get_from_config: ", should_get_from_config)
     if should_get_from_config.lower() == "true":
         api_keys = config.get("configurable", {}).get("apiKeys", {})
         if not api_keys:
             return None
         return api_keys.get("TAVILY_API_KEY")
     else:
-        return os.getenv("TAVILY_API_KEY")
+        tavily_api_key = os.getenv("TAVILY_API_KEY")
+        print("read tavily key from .env file: ", tavily_api_key)
+        return tavily_api_key
