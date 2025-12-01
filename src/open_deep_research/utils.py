@@ -168,7 +168,6 @@ async def tavily_search_async(
     """
     # Initialize the Tavily client with API key from config
     api_key = get_tavily_api_key(config)
-    print("tavily api key: ", api_key)
     tavily_client = AsyncTavilyClient(api_key=api_key)
 
     # Create search tasks for parallel execution
@@ -567,7 +566,6 @@ async def get_search_tool(search_api: SearchAPI):
     Returns:
         List of configured search tool objects for the specified provider
     """
-    print("seach api tool name: ", search_api)
     if search_api == SearchAPI.ANTHROPIC:
         # Anthropic's native web search with usage limits
         return [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
@@ -996,7 +994,6 @@ def get_api_key_for_model(model_name: str, config: RunnableConfig):
 def get_tavily_api_key(config: RunnableConfig):
     """Get Tavily API key from environment or config."""
     should_get_from_config = os.getenv("GET_API_KEYS_FROM_CONFIG", "false")
-    print("should_get_from_config: ", should_get_from_config)
     if should_get_from_config.lower() == "true":
         api_keys = config.get("configurable", {}).get("apiKeys", {})
         if not api_keys:
@@ -1004,5 +1001,4 @@ def get_tavily_api_key(config: RunnableConfig):
         return api_keys.get("TAVILY_API_KEY")
     else:
         tavily_api_key = os.getenv("TAVILY_API_KEY")
-        print("read tavily key from .env file: ", tavily_api_key)
         return tavily_api_key
